@@ -1,0 +1,1 @@
+Just a Scientific Calculator Application for smartphones running the Android Operating System that is currently being made using the Kotlin programming language and the Jetpack Compose declarative UI framework by JetBrains.
