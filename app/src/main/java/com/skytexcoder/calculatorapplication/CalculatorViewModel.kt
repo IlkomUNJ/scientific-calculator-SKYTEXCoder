@@ -128,7 +128,7 @@ class CalculatorViewModel : ViewModel() {
                 }
             }
 
-            Log.i("Current Equation Text: ", _equationText.value.toString())
+            Log.i("[PRINT] EQT Before C.: ", _equationText.value.toString())
 
             try {
                 _resultText.value = calculateResult(_equationText.value.toString())
@@ -136,8 +136,8 @@ class CalculatorViewModel : ViewModel() {
 
             }
 
-            Log.i("Eq. Text AFTER Calc.: ", _equationText.value.toString())
-            Log.i("Current Result Text: ", _resultText.value.toString())
+            Log.i("[PRINT] EQT After Calc.", _equationText.value.toString())
+            Log.i("[PRINT] Result Text: ", _resultText.value.toString())
 
             lastButtonPressed = btn
         }
@@ -160,20 +160,24 @@ class CalculatorViewModel : ViewModel() {
             sanitizedEquationText.append(currentCharacter)
         }
         val finalEquationTextToBeEvaluated = sanitizedEquationText.toString()
-        Log.i("Sanitized Equation", "Original: '$equationText', Processed: '$finalEquationTextToBeEvaluated'")
+        Log.i("[PRINT] SNTZD Equation", "Original: '$equationText', Processed: '$finalEquationTextToBeEvaluated'")
         val context: Context = Context.enter()
         context.optimizationLevel = -1
         val scriptable: Scriptable = context.initStandardObjects()
         val resultFromRhino = context.evaluateString(scriptable, finalEquationTextToBeEvaluated, "Javascript", 1, null)
+        // Log.i("[PRINT] RawRhinoOutput", resultFromRhino)
         val rawResultString = resultFromRhino.toString()
+        Log.i("[PRINT] RawRhinoResult", rawResultString)
         try {
             val resultAsBigDecimal = BigDecimal(rawResultString)
             var plainStringResult = resultAsBigDecimal.toPlainString()
+            Log.i("[PRINT] BgDecimalResult", plainStringResult)
             if (plainStringResult.endsWith(".0")) {
                 plainStringResult = plainStringResult.removeSuffix(".0")
             }
             return plainStringResult
         } catch (e: NumberFormatException) {
+            Log.i("[PRINT] Exception: ", e.toString())
             return rawResultString
         }
     }

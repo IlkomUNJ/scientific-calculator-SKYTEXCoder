@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -98,7 +99,7 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
 
     val darkModeEnabled by LocalTheme.current.darkMode.collectAsState()
 
-    // set the second text color hex code to 0xFF212121 for when you finally figure shit out
+    // set the second text color hex code to 0xFF212121 for when you finally figure out how to add a dark mode / light mode switch into the application.
     val textColor = if (darkModeEnabled) Color(0xFFFFFFFF) else Color(0xFFFFFFFF)
     val themeViewModel = LocalTheme.current
 
@@ -144,7 +145,7 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             contentAlignment = Alignment.BottomStart
         ) {
             Column(horizontalAlignment = Alignment.End) {
-                Spacer(modifier = Modifier.padding(40.dp))
+                Spacer(modifier = Modifier.padding(20.dp))
                 Text(
                     text = formattedEquationText,
                     style = TextStyle(
@@ -155,8 +156,8 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
                 ),
                     maxLines = 5,
                     overflow = TextOverflow.Ellipsis,
-                    modifier=Modifier.padding(horizontal = 16.dp))
-                Spacer(modifier = Modifier.weight(1.5f))
+                    modifier=Modifier.padding(horizontal = 8.dp))
+                Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = formattedResultText,
                     style = TextStyle(
@@ -169,24 +170,30 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
                     // overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Spacer(modifier=Modifier.height(32.dp))
-                LazyVerticalGrid(
+                Spacer(modifier=Modifier.height(20.dp))
+                Box(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(4.dp),
-                    columns = GridCells.Fixed(4),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(8.dp)
+                        .fillMaxWidth()
+                        .weight(2.0f)
                 ) {
-                    items(calculatorButtons) {
-                        CalculatorClickableButton(
-                            button = it,
-                            onClick = {
-                                viewModel.onCalculatorButtonClick(it.text)
-                            }
-                        )
+                    LazyVerticalGrid(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                            .padding(8.dp),
+                        columns = GridCells.Fixed(4),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(calculatorButtons) {
+                            CalculatorClickableButton(
+                                button = it,
+                                onClick = {
+                                    viewModel.onCalculatorButtonClick(it.text)
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -265,7 +272,7 @@ fun formatResultTextForDisplay(numberString: String?): String {
     }
 
     val formatter = NumberFormat.getNumberInstance(Locale.getDefault())
-    formatter.maximumIntegerDigits = 50
+    formatter.maximumIntegerDigits = 500
 
     val isWholeNumber = numberAsBigDecimal.stripTrailingZeros().scale() <= 0
 
@@ -273,7 +280,7 @@ fun formatResultTextForDisplay(numberString: String?): String {
         formatter.maximumFractionDigits = 0
         formatter.format(numberAsBigDecimal)
     } else {
-        formatter.maximumFractionDigits = 20
+        formatter.maximumFractionDigits = 50
         formatter.format(numberAsBigDecimal)
     }
 
