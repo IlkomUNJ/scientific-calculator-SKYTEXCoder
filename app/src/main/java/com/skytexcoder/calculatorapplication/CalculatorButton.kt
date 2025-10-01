@@ -40,7 +40,7 @@ data class CalculatorButton(
 )
 
 enum class CalculatorButtonType {
-    NORMAL, ACTION, RESET, CLEAR
+    NORMAL, ACTION, RESET, CLEAR, SCIENTIFIC_TRIGONOMETRY, SCIENTIFIC_ACTION
 }
 
 @Composable
@@ -72,7 +72,7 @@ fun CalculatorClickableButton(button: CalculatorButton, onClick: () -> Unit, mod
     }
 
     Box(modifier = Modifier
-        .clip(RoundedCornerShape(16.dp))
+        .clip(RoundedCornerShape(30.dp))
         .background(MaterialTheme.colorScheme.secondary)
         .fillMaxHeight()
         .aspectRatio(1f)
@@ -104,6 +104,10 @@ fun CalculatorClickableButton(button: CalculatorButton, onClick: () -> Unit, mod
                 Color.White
             else if (button.type == CalculatorButtonType.ACTION)
                 Cyan
+            else if (button.type == CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY)
+                Color(0xFFFFA500)
+            else if (button.type == CalculatorButtonType.SCIENTIFIC_ACTION)
+                Color(0xFF00FF00)
             else
                 Red
         if (button.icon != null) {

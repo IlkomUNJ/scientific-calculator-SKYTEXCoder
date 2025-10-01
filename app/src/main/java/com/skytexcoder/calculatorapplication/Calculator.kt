@@ -5,19 +5,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +44,9 @@ import java.util.Locale
 // data class CalculatorButton(val text: String, val type: CalculatorButtonType, val icon: ImageVector? = null)
 
 val buttonList = listOf(
+    "1/x", "sin", "cos", "tan",
+    "x!", "sin⁻¹", "cos⁻¹", "tan⁻¹",
+    "xʸ", "√x", "log", "ln",
     "BACKSPACE", "(", ")", "÷",
     "7", "8", "9", "×",
     "4", "5", "6", "+",
@@ -75,6 +74,18 @@ val buttonTypeMap: HashMap<String, CalculatorButtonType> = hashMapOf(
     "-" to CalculatorButtonType.ACTION,
     "×" to CalculatorButtonType.ACTION,
     "÷" to CalculatorButtonType.ACTION,
+    "sin" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "cos" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "tan" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "sin⁻¹" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "cos⁻¹" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "tan⁻¹" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "log" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "ln" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "xʸ" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "x!" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "√x" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "1/x" to CalculatorButtonType.SCIENTIFIC_ACTION,
     "=" to CalculatorButtonType.ACTION,
 )
 
@@ -86,6 +97,7 @@ val buttonIconsMap: HashMap<String, ImageVector> = hashMapOf(
 fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewModel) {
 
     val darkModeEnabled by LocalTheme.current.darkMode.collectAsState()
+
     // set the second text color hex code to 0xFF212121 for when you finally figure shit out
     val textColor = if (darkModeEnabled) Color(0xFFFFFFFF) else Color(0xFFFFFFFF)
     val themeViewModel = LocalTheme.current
@@ -132,7 +144,7 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             contentAlignment = Alignment.BottomStart
         ) {
             Column(horizontalAlignment = Alignment.End) {
-                Spacer(modifier = Modifier.padding(20.dp))
+                Spacer(modifier = Modifier.padding(40.dp))
                 Text(
                     text = formattedEquationText,
                     style = TextStyle(
@@ -143,8 +155,8 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
                 ),
                     maxLines = 5,
                     overflow = TextOverflow.Ellipsis,
-                    modifier=Modifier.padding(horizontal = 8.dp))
-                Spacer(modifier = Modifier.weight(1f))
+                    modifier=Modifier.padding(horizontal = 16.dp))
+                Spacer(modifier = Modifier.weight(1.5f))
                 Text(
                     text = formattedResultText,
                     style = TextStyle(
@@ -155,18 +167,18 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
                     ),
                     maxLines = 5,
                     // overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Spacer(modifier=Modifier.height(20.dp))
+                Spacer(modifier=Modifier.height(32.dp))
                 LazyVerticalGrid(
                     modifier = Modifier
                         .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                         .background(MaterialTheme.colorScheme.primary)
-                        .padding(8.dp),
+                        .padding(4.dp),
                     columns = GridCells.Fixed(4),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(8.dp)
                 ) {
                     items(calculatorButtons) {
                         CalculatorClickableButton(
@@ -179,7 +191,7 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
                 }
             }
         }
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        /* Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
@@ -200,10 +212,17 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
                     tint = Color.White
                 )
             }
-        }
+        } */
     }
 }
 
+/**
+ * Formats a raw equation string for display.
+ * - Replaces "*" with "×" and "/" with "÷".
+ * - Formats numbers within the equation using `formatResultTextForDisplay`.
+ * @param rawEquation The raw equation string from the calculation engine (e.g., "200000*3.5").
+ * @return A formatted equation string for display (e.g., "200,000 × 3.5").
+ */
 fun formatEquationTextForDisplay(rawEquation: String?): String {
     if (rawEquation.isNullOrEmpty()) {
         return "0"
@@ -225,9 +244,6 @@ fun formatEquationTextForDisplay(rawEquation: String?): String {
     }
 
 }
-
-
-
 
 /**
  * Formats a raw number string for display.
