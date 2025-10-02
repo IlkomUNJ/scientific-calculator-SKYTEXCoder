@@ -97,11 +97,8 @@ val buttonIconsMap: HashMap<String, ImageVector> = hashMapOf(
 @Composable
 fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewModel) {
 
-    val darkModeEnabled by LocalTheme.current.darkMode.collectAsState()
-
     // set the second text color hex code to 0xFF212121 for when you finally figure out how to add a dark mode / light mode switch into the application.
-    val textColor = if (darkModeEnabled) Color(0xFFFFFFFF) else Color(0xFFFFFFFF)
-    val themeViewModel = LocalTheme.current
+    val textColor = MaterialTheme.colorScheme.onSecondary
 
     val equationTextState = viewModel.equationText.observeAsState()
     val resultTextState = viewModel.resultText.observeAsState()
