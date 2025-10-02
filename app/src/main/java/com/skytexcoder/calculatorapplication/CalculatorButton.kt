@@ -72,7 +72,7 @@ fun CalculatorClickableButton(button: CalculatorButton, onClick: () -> Unit, mod
     }
 
     Box(modifier = Modifier
-        .clip(RoundedCornerShape(30.dp))
+        .clip(RoundedCornerShape(16.dp))
         .background(MaterialTheme.colorScheme.secondary)
         .fillMaxHeight()
         .aspectRatio(1f)
@@ -99,21 +99,28 @@ fun CalculatorClickableButton(button: CalculatorButton, onClick: () -> Unit, mod
         ),
         contentAlignment = Alignment.Center
     ) {
-        val contentColor =
-            if (button.type == CalculatorButtonType.NORMAL)
-                Color.White
-            else if (button.type == CalculatorButtonType.ACTION)
-                Cyan
-            else if (button.type == CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY)
-                Color(0xFFFFA500)
-            else if (button.type == CalculatorButtonType.SCIENTIFIC_ACTION)
-                Color(0xFF00FF00)
-            else
-                Red
+        val contentColor = when (button.type) {
+            CalculatorButtonType.NORMAL -> Color.White
+            CalculatorButtonType.ACTION -> Cyan
+            CalculatorButtonType.RESET -> Red
+            CalculatorButtonType.CLEAR -> Red
+            CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY -> Color(0xFFFFA500)
+            CalculatorButtonType.SCIENTIFIC_ACTION -> Color(0xFF00FF00)
+        }
         if (button.icon != null) {
             Icon(modifier = Modifier.size(32.dp), imageVector = button.icon, contentDescription = null, tint = contentColor)
         } else {
-            Text(text = button.text!!, color = contentColor, fontWeight = FontWeight.Bold, fontSize = if (button.type == CalculatorButtonType.ACTION) 25.sp else 20.sp)
+            Text(
+                text = button.text!!,
+                color = contentColor,
+                fontWeight = FontWeight.Bold,
+                fontSize = when (button.type) {
+                    CalculatorButtonType.ACTION -> 25.sp
+                    CalculatorButtonType.SCIENTIFIC_ACTION -> 20.sp
+                    CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY -> 20.sp
+                    else -> 20.sp
+                }
+            )
         }
     }
 }

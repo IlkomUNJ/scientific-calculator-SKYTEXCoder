@@ -75,6 +75,7 @@ val buttonTypeMap: HashMap<String, CalculatorButtonType> = hashMapOf(
     "-" to CalculatorButtonType.ACTION,
     "×" to CalculatorButtonType.ACTION,
     "÷" to CalculatorButtonType.ACTION,
+    "=" to CalculatorButtonType.ACTION,
     "sin" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
     "cos" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
     "tan" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
@@ -87,7 +88,6 @@ val buttonTypeMap: HashMap<String, CalculatorButtonType> = hashMapOf(
     "x!" to CalculatorButtonType.SCIENTIFIC_ACTION,
     "√x" to CalculatorButtonType.SCIENTIFIC_ACTION,
     "1/x" to CalculatorButtonType.SCIENTIFIC_ACTION,
-    "=" to CalculatorButtonType.ACTION,
 )
 
 val buttonIconsMap: HashMap<String, ImageVector> = hashMapOf(
@@ -144,33 +144,42 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.BottomStart
         ) {
-            Column(horizontalAlignment = Alignment.End) {
-                Spacer(modifier = Modifier.padding(20.dp))
-                Text(
-                    text = formattedEquationText,
-                    style = TextStyle(
-                        fontSize = 30.sp,
-                        textAlign = TextAlign.End,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor,
-                ),
-                    maxLines = 5,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier=Modifier.padding(horizontal = 8.dp))
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = formattedResultText,
-                    style = TextStyle(
-                        fontSize = 48.sp,
-                        textAlign = TextAlign.End,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor,
-                    ),
-                    maxLines = 5,
-                    // overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer(modifier=Modifier.height(20.dp))
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxSize()) {
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp)
+                        .fillMaxWidth(),
+                ) {
+                    Spacer(modifier = Modifier.padding(20.dp))
+                    Text(
+                        text = formattedEquationText,
+                        style = TextStyle(
+                            fontSize = 30.sp,
+                            textAlign = TextAlign.End,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor,
+                        ),
+                        maxLines = 5,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = formattedResultText,
+                        style = TextStyle(
+                            fontSize = 48.sp,
+                            textAlign = TextAlign.End,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor,
+                        ),
+                        maxLines = 5,
+                        // overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -178,12 +187,13 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
                 ) {
                     LazyVerticalGrid(
                         modifier = Modifier
+                            .fillMaxSize()
                             .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                             .background(MaterialTheme.colorScheme.primary)
                             .padding(8.dp),
                         columns = GridCells.Fixed(4),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(calculatorButtons) {
