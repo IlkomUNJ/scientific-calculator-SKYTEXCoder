@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.Scriptable
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class CalculatorViewModel : ViewModel() {
 
@@ -308,16 +309,18 @@ class CalculatorViewModel : ViewModel() {
     fun calculateResult(equationText: String): String {
         var sanitizedEquation = equationText
 
+        Log.i("[PRINT] SNTZDEQ0", "Original: '$sanitizedEquation'")
+
         sanitizedEquation = sanitizedEquation
             .replace("×", "*")
             .replace("÷", "/")
             .replace("√", "Math.sqrt(")
-            .replace("sin⁻¹", "asin(")
-            .replace("cos⁻¹", "acos(")
-            .replace("tan⁻¹", "atan(")
             .replace("sin", "Math.sin")
             .replace("cos", "Math.cos")
             .replace("tan", "Math.tan")
+            .replace("sin⁻¹", "asin")
+            .replace("cos⁻¹", "acos")
+            .replace("tan⁻¹", "atan")
             .replace("log", "Math.log10")
             .replace("ln", "Math.log")
             .replace("^", "**")
@@ -370,7 +373,7 @@ class CalculatorViewModel : ViewModel() {
             try {
                 val resultAsBigDecimal = BigDecimal(rawResultString)
                 var plainStringResult = resultAsBigDecimal.toPlainString()
-                Log.i("[PRINT] BgDecimalResult", plainStringResult)
+                Log.i("[PRINT]BigDecimalResult", plainStringResult)
                 if (plainStringResult.endsWith(".0")) {
                     plainStringResult = plainStringResult.removeSuffix(".0")
                 }
@@ -407,13 +410,13 @@ class CalculatorViewModel : ViewModel() {
         return result
     }
 
-    private fun calculateFactorial(n: Int): Long {
+    private fun calculateFactorial(n: Int): BigInteger {
         Log.i("[PRINT] FactorialCalc:", "Calculating factorial of $n")
-        if (n < 0) return 0
-        if (n == 0 || n == 1) return 1
-        var result = 1L
+        if (n < 0) return 0.toBigInteger()
+        if (n == 0 || n == 1) return 1.toBigInteger()
+        var result = BigInteger.ONE
         for (i in 2..n) {
-            result *= i
+            result = result.multiply(i.toBigInteger())
         }
         return result
     }
