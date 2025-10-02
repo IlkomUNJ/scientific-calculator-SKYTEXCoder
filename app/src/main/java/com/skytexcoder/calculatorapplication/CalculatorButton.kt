@@ -100,7 +100,7 @@ fun CalculatorClickableButton(button: CalculatorButton, onClick: () -> Unit, mod
         contentAlignment = Alignment.Center
     ) {
         val contentColor = when (button.type) {
-            CalculatorButtonType.NORMAL -> Color.White
+            CalculatorButtonType.NORMAL -> MaterialTheme.colorScheme.onSecondary
             CalculatorButtonType.ACTION -> Cyan
             CalculatorButtonType.RESET -> Red
             CalculatorButtonType.CLEAR -> Red
