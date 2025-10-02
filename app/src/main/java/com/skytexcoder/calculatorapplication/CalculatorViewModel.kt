@@ -314,7 +314,7 @@ class CalculatorViewModel : ViewModel() {
         sanitizedEquation = sanitizedEquation
             .replace("×", "*")
             .replace("÷", "/")
-            .replace("√", "Math.sqrt(")
+            // .replace("√", "Math.sqrt(")
             .replace("sin", "Math.sin")
             .replace("cos", "Math.cos")
             .replace("tan", "Math.tan")
@@ -423,113 +423,116 @@ class CalculatorViewModel : ViewModel() {
 
     private fun handleSquareRoot(equation: String): String {
         var result = equation
-        var openCount = 0
-        val newResult = StringBuilder()
-
-        var i = 0
-        while (i < result.length) {
-            if (result.substring(i).startsWith("Math.sqrt(")) {
-                newResult.append("Math.sqrt(")
-                i += 10
-                openCount = 1
-
-                while (i < result.length && openCount > 0) {
-                    when (result[i]) {
-                        '(' -> openCount++
-                        ')' -> openCount--
-                    }
-                    newResult.append(result[i])
-                    i++
-                }
-
-                if (openCount > 0) {
-                    while (i < result.length) {
-                        val character = result[i]
-                        if (character in setOf('+', '-', '*', '/', ')')) {
-                            newResult.append(')')
-                            break
-                        }
-                        newResult.append(character)
-                        i++
-                    }
-                    if (i >= result.length) {
-                        newResult.append(')')
-                    }
+        val squareRootPattern = "√".toRegex()
+        val matches = squareRootPattern.findAll(result).toList().reversed()
+        for (match in matches) {
+            val squareRootIndex = match.range.first
+            val afterSquareRootIndex = squareRootIndex + 1
+            if (afterSquareRootIndex >= result.length) {
+                result = result.substring(0, squareRootIndex) + "Math.sqrt()"
+                continue
+            }
+            val characterAfterSquareRoot = result[afterSquareRootIndex]
+            if (characterAfterSquareRoot == '(') {
+                val closingIndex = findMatchingClosingParentheses(result, afterSquareRootIndex + 1)
+                if (closingIndex != -1) {
+                    val content = result.substring(afterSquareRootIndex + 1, closingIndex)
+                    val replacement = "Math.sqrt($content)"
+                    result = result.substring(0, squareRootIndex) + replacement + result.substring(closingIndex + 1)
+                } else {
+                    val content = result.substring(afterSquareRootIndex + 1)
+                    val replacement = "Math.sqrt($content)"
+                    result = result.substring(0, squareRootIndex) + replacement
                 }
             } else {
-                newResult.append(result[i])
-                i++
+                var endIndex = afterSquareRootIndex
+                while (endIndex < result.length) {
+                    val character = result[endIndex]
+                    if (character.isDigit() || character == '.') {
+                        endIndex++
+                    } else {
+                        break
+                    }
+                }
+                val content = result.substring(afterSquareRootIndex, endIndex)
+                val replacement = "Math.sqrt($content)"
+                result = result.substring(0, squareRootIndex) + replacement + result.substring(endIndex)
             }
         }
-        return newResult.toString()
+        Log.i("[PRINT] SquareRoot", "Result: $result")
+        return result
     }
 
     private fun convertTrigonometryToDegrees(equation: String): String {
         var result = equation
 
-        result = result.replace("Math.sin(", "Math.sin((Math.PI / 180)*(")
-            .replace("Math.cos(", "Math.cos((Math.PI / 180)*(")
-            .replace("Math.tan(", "Math.tan((Math.PI / 180))*(")
+        result = processTrigonometryFunction(result, "Math.sin")
+        result = processTrigonometryFunction(result, "Math.cos")
+        result = processTrigonometryFunction(result, "Math.tan")
 
-        result = balanceParenthesesForTrigonometry(result, "Math.sin")
-        result = balanceParenthesesForTrigonometry(result, "Math.cos")
-        result = balanceParenthesesForTrigonometry(result, "Math.tan")
-
-        result = result.replace("asin(", "((180 / Math.PI)*Math.asin(")
-            .replace("acos(", "((180 / Math.PI)*Math.acos(")
-            .replace("atan(", "((180 / Math.PI)*Math.atan(")
-
-        result = balanceParenthesesForInverseTrigonometry(result, "Math.asin")
-        result = balanceParenthesesForInverseTrigonometry(result, "Math.acos")
-        result = balanceParenthesesForInverseTrigonometry(result, "Math.atan")
+        result = processInverseTrigonometryFunction(result, "Math.asin")
+        result = processInverseTrigonometryFunction(result, "Math.acos")
+        result = processInverseTrigonometryFunction(result, "Math.atan")
 
         return result
     }
 
-    private fun balanceParenthesesForTrigonometry(equation: String, functionName: String): String {
+    private fun processTrigonometryFunction(equation: String, functionName: String): String {
         var result = equation
-        val regularExpressionPattern = "$functionName\\(\\(Math\\.PI/180\\)\\*\\(".toRegex()
+        val pattern = "$functionName\\(".toRegex()
 
-        regularExpressionPattern.findAll(result).forEach { match ->
+        val matches = pattern.findAll(result).toList().reversed()
+
+        for (match in matches) {
             val startIndex = match.range.last + 1
-            var openCount = 3
-            var endIndex = startIndex
+            val closingIndex = findMatchingClosingParentheses(result, startIndex)
 
-            while (endIndex < result.length && openCount > 0) {
-                when (result[endIndex]) {
-                    '(' -> openCount++
-                    ')' -> openCount--
-                }
-                endIndex++
-            }
-            if (openCount == 1 && endIndex <= result.length) {
-                result = result.substring(0, endIndex) + ")" + result.substring(endIndex)
+            if (closingIndex != -1) {
+                val content = result.substring(startIndex, closingIndex)
+
+                val replacement = "$functionName((Math.PI/180)*($content))"
+
+                result = result.substring(0, match.range.first) + replacement + result.substring(closingIndex + 1)
             }
         }
         return result
     }
 
-    private fun balanceParenthesesForInverseTrigonometry(equation: String, functionName: String): String {
+    private fun processInverseTrigonometryFunction(equation: String, functionName: String): String {
         var result = equation
-        val regularExpressionPattern = "\\(\\(180/Math\\.PI\\)\\*$functionName\\(".toRegex()
+        val pattern = "$functionName\\(".toRegex()
 
-        regularExpressionPattern.findAll(result).forEach { match ->
+        val matches = pattern.findAll(result).toList().reversed()
+
+        for (match in matches) {
             val startIndex = match.range.last + 1
-            var openCount = 3
-            var endIndex = startIndex
+            val closingIndex = findMatchingClosingParentheses(result, startIndex)
 
-            while (endIndex < result.length && openCount > 0) {
-                when (result[endIndex]) {
-                    '(' -> openCount++
-                    ')' -> openCount--
-                }
-                endIndex++
-            }
+            if (closingIndex != -1) {
+                val content = result.substring(startIndex, closingIndex)
+                val replacement = "((180/Math.PI)*$functionName($content))"
 
-            if (openCount == 1 && endIndex <= result.length) {
-                result = result.substring(0, endIndex) + ")" + result.substring(endIndex)
+                result = result.substring(0, match.range.first) + replacement + result.substring(closingIndex + 1)
             }
         }
         return result
+    }
+
+    private fun findMatchingClosingParentheses(text: String, startIndex: Int): Int {
+        var depth = 1
+        var index = startIndex
+
+        while (index < text.length && depth > 0) {
+            when (text[index]) {
+                '(' -> depth++
+                ')' -> depth--
+            }
+
+            if (depth == 0) {
+                return index
+            }
+            index++
+        }
+        return -1
     }
 }

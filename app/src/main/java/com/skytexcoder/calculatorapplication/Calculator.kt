@@ -167,7 +167,17 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = formattedResultText,
+                        text = resultTextState.value?.let {
+                            if (it == "NaN" || it == "undefined") {
+                                it
+                            } else if (it == "Infinity" || it == "-Infinity") {
+                                "∞"
+                            } else if (it.matches("""^[a-zA-Z_][\w.]*@[0-9a-fA-F]+$""".toRegex())) {
+                                "Domain Error"
+                            } else {
+                                formattedResultText
+                            }
+                        } ?: "0",
                         style = TextStyle(
                             fontSize = 48.sp,
                             textAlign = TextAlign.End,
