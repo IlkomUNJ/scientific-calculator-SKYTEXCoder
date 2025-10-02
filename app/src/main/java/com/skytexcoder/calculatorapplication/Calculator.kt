@@ -5,19 +5,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +45,9 @@ import java.util.Locale
 // data class CalculatorButton(val text: String, val type: CalculatorButtonType, val icon: ImageVector? = null)
 
 val buttonList = listOf(
+    "1/x", "sin", "cos", "tan",
+    "x!", "sin⁻¹", "cos⁻¹", "tan⁻¹",
+    "xʸ", "√x", "log", "ln",
     "BACKSPACE", "(", ")", "÷",
     "7", "8", "9", "×",
     "4", "5", "6", "+",
@@ -76,6 +76,18 @@ val buttonTypeMap: HashMap<String, CalculatorButtonType> = hashMapOf(
     "×" to CalculatorButtonType.ACTION,
     "÷" to CalculatorButtonType.ACTION,
     "=" to CalculatorButtonType.ACTION,
+    "sin" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "cos" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "tan" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "sin⁻¹" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "cos⁻¹" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "tan⁻¹" to CalculatorButtonType.SCIENTIFIC_TRIGONOMETRY,
+    "log" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "ln" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "xʸ" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "x!" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "√x" to CalculatorButtonType.SCIENTIFIC_ACTION,
+    "1/x" to CalculatorButtonType.SCIENTIFIC_ACTION,
 )
 
 val buttonIconsMap: HashMap<String, ImageVector> = hashMapOf(
@@ -86,7 +98,8 @@ val buttonIconsMap: HashMap<String, ImageVector> = hashMapOf(
 fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewModel) {
 
     val darkModeEnabled by LocalTheme.current.darkMode.collectAsState()
-    // set the second text color hex code to 0xFF212121 for when you finally figure shit out
+
+    // set the second text color hex code to 0xFF212121 for when you finally figure out how to add a dark mode / light mode switch into the application.
     val textColor = if (darkModeEnabled) Color(0xFFFFFFFF) else Color(0xFFFFFFFF)
     val themeViewModel = LocalTheme.current
 
@@ -131,55 +144,81 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.BottomStart
         ) {
-            Column(horizontalAlignment = Alignment.End) {
-                Spacer(modifier = Modifier.padding(20.dp))
-                Text(
-                    text = formattedEquationText,
-                    style = TextStyle(
-                        fontSize = 30.sp,
-                        textAlign = TextAlign.End,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor,
-                ),
-                    maxLines = 5,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier=Modifier.padding(horizontal = 8.dp))
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = formattedResultText,
-                    style = TextStyle(
-                        fontSize = 48.sp,
-                        textAlign = TextAlign.End,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor,
-                    ),
-                    maxLines = 5,
-                    // overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-                Spacer(modifier=Modifier.height(20.dp))
-                LazyVerticalGrid(
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.fillMaxSize()) {
+                Column(
+                    horizontalAlignment = Alignment.End,
                     modifier = Modifier
-                        .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(8.dp),
-                    columns = GridCells.Fixed(4),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(16.dp)
+                        .weight(1f)
+                        .padding(horizontal = 8.dp)
+                        .fillMaxWidth(),
                 ) {
-                    items(calculatorButtons) {
-                        CalculatorClickableButton(
-                            button = it,
-                            onClick = {
-                                viewModel.onCalculatorButtonClick(it.text)
+                    Spacer(modifier = Modifier.padding(20.dp))
+                    Text(
+                        text = formattedEquationText,
+                        style = TextStyle(
+                            fontSize = 30.sp,
+                            textAlign = TextAlign.End,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor,
+                        ),
+                        maxLines = 5,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = resultTextState.value?.let {
+                            if (it == "NaN" || it == "undefined") {
+                                it
+                            } else if (it == "Infinity" || it == "-Infinity") {
+                                "∞"
+                            } else if (it.matches("""^[a-zA-Z_][\w.]*@[0-9a-fA-F]+$""".toRegex())) {
+                                "Domain Error"
+                            } else {
+                                formattedResultText
                             }
-                        )
+                        } ?: "0",
+                        style = TextStyle(
+                            fontSize = 48.sp,
+                            textAlign = TextAlign.End,
+                            fontWeight = FontWeight.Bold,
+                            color = textColor,
+                        ),
+                        maxLines = 5,
+                        // overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(2.0f)
+                ) {
+                    LazyVerticalGrid(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                            .padding(8.dp),
+                        columns = GridCells.Fixed(4),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
+                        items(calculatorButtons) {
+                            CalculatorClickableButton(
+                                button = it,
+                                onClick = {
+                                    viewModel.onCalculatorButtonClick(it.text)
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        /* Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
@@ -200,10 +239,17 @@ fun CalculatorLayout(modifier: Modifier = Modifier, viewModel: CalculatorViewMod
                     tint = Color.White
                 )
             }
-        }
+        } */
     }
 }
 
+/**
+ * Formats a raw equation string for display.
+ * - Replaces "*" with "×" and "/" with "÷".
+ * - Formats numbers within the equation using `formatResultTextForDisplay`.
+ * @param rawEquation The raw equation string from the calculation engine (e.g., "200000*3.5").
+ * @return A formatted equation string for display (e.g., "200,000 × 3.5").
+ */
 fun formatEquationTextForDisplay(rawEquation: String?): String {
     if (rawEquation.isNullOrEmpty()) {
         return "0"
@@ -226,9 +272,6 @@ fun formatEquationTextForDisplay(rawEquation: String?): String {
 
 }
 
-
-
-
 /**
  * Formats a raw number string for display.
  * - Adds thousands separators.
@@ -249,7 +292,7 @@ fun formatResultTextForDisplay(numberString: String?): String {
     }
 
     val formatter = NumberFormat.getNumberInstance(Locale.getDefault())
-    formatter.maximumIntegerDigits = 50
+    formatter.maximumIntegerDigits = 500
 
     val isWholeNumber = numberAsBigDecimal.stripTrailingZeros().scale() <= 0
 
@@ -257,7 +300,7 @@ fun formatResultTextForDisplay(numberString: String?): String {
         formatter.maximumFractionDigits = 0
         formatter.format(numberAsBigDecimal)
     } else {
-        formatter.maximumFractionDigits = 20
+        formatter.maximumFractionDigits = 50
         formatter.format(numberAsBigDecimal)
     }
 
